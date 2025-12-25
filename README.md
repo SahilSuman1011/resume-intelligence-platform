@@ -15,23 +15,25 @@ A full-stack AI-powered platform for analyzing job descriptions, matching resume
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React 18** - UI library
-- **Vite** - Build tool & dev server
-- **Tailwind CSS** - Styling
+- **React 19.2** - UI library
+- **Vite 7.x** - Build tool & dev server
+- **Tailwind CSS 3.4** - Utility-first styling
 - **Axios** - HTTP client
 - **Lucide React** - Icons
 
 ### Backend
-- **Node.js** - Runtime
-- **Express** - Web framework
-- **Multer** - File upload
+- **Node.js v18+** - Runtime with ES modules
+- **Express 4.18** - Web framework
+- **Multer** - File upload middleware
 - **pdf-parse** - PDF text extraction
+- **Cheerio** - HTML parsing for job URL scraping
+- **Natural** - Keyword extraction fallback
 
 ### AI/ML
 - **Ollama** - Local LLM (llama3.2:3b)
-- **LangChain** - AI orchestration
-- **nomic-embed-text** - Embeddings (768D)
-- **Custom Vector Store** - In-memory similarity search
+- **LangChain 0.3.x** - AI orchestration framework
+- **nomic-embed-text** - Embeddings (768D vectors)
+- **Custom Vector Store** - In-memory cosine similarity search
 
 ## 📋 Prerequisites
 
@@ -71,10 +73,14 @@ cd backend
 # Install dependencies
 npm install
 
-# Create .env file
+# Create .env file (Windows)
+copy .env.example .env
+# Or (Mac/Linux)
 cp .env.example .env
 
-# Create required directories
+# Create required directories (Windows)
+mkdir uploads
+# Or (Mac/Linux)
 mkdir -p uploads data/vectors
 
 # Start backend server
@@ -87,7 +93,9 @@ Backend will run on `http://localhost:5000`
 
 ```bash
 cd ../frontend
-
+ (Windows)
+copy .env.example .env
+# Or (Mac/Linux)
 # Install dependencies
 npm install
 
@@ -198,9 +206,13 @@ VITE_API_URL=http://localhost:5000/api
 # Check if Ollama is running
 curl http://localhost:11434/api/tags
 
-# Start Ollama
-ollama serve
-```
+# Mac/Linux
+lsof -ti:5000 | xargs kill -9
+
+# Windows
+netstat -ano | findstr :5000
+# Note the PID, then:
+taskkill /PID <PID> /F
 
 ### Port Already in Use
 ```bash
@@ -209,9 +221,16 @@ lsof -ti:5000 | xargs kill -9  # Mac/Linux
 netstat -ano | findstr :5000   # Windows
 ```
 
-### CORS Errors
-- Ensure backend is running on port 5000
-- Ensure frontend is running on port 5173
+### CORS Er`uploads/` directory exists in backend folder
+- Verify file size < 10MB (configurable in .env)
+- Ensure file format is PDF or TXT only
+- Check backend console for detailed error messages
+
+### Slow AI Responses
+- First API call loads the model (10-30s is normal)
+- Subsequent calls are much faster (5-10s)
+- Ensure Ollama is running: `ollama list`
+- Consider using a smaller model if neededng on port 5173
 - Check FRONTEND_URL in backend/.env
 
 ### Upload Errors
@@ -221,10 +240,13 @@ netstat -ano | findstr :5000   # Windows
 
 ## 📈 Performance
 
-- **Skill Extraction**: 5-10 seconds per document
-- **Resume Upload**: 10-15 seconds (parsing + embedding)
-- **Chat Response**: 2-5 seconds
-- **Match Calculation**: <1 second
+**Optimized Settings** (num_predict: 80, num_ctx: 2048):
+- **First AI Call**: 10-30 seconds (model loading + inference)
+- **Subsequent Calls**: 5-10 seconds (cached model)
+- **Skill Extraction**: 5-15 seconds per document
+- **Resume Upload**: 10-20 seconds (parsing + embedding)
+- **Chat Response**: 3-8 seconds (RAG retrieval + generation)
+- **Match Calculation**: <1 second (pure computation)
 
 ## 🔐 Security Notes
 

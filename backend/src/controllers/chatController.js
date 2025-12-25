@@ -1,6 +1,6 @@
 import { queryResumeRAG } from '../services/ragService.js';
 import conversationMemory from '../services/memoryService.js';
-import { resumes } from './resumeController.js';
+import db from '../config/db.js';
 
 /**
  * Chat with a resume using RAG
@@ -16,7 +16,7 @@ export async function chatWithResume(req, res) {
     }
 
     // Verify resume exists
-    const resume = resumes.get(resumeId);
+    const resume = db.getResume(resumeId);
     if (!resume) {
       return res.status(404).json({ error: 'Resume not found' });
     }
