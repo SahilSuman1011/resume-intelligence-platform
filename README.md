@@ -61,7 +61,7 @@ ollama list
 ### 2. Clone or Download Project
 
 ```bash
-git clone <repository-url>
+git clone <https://github.com/SahilSuman1011/resume-intelligence-platform>
 cd resume-intelligence-platform
 ```
 
