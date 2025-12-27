@@ -4,22 +4,22 @@ A full-stack AI-powered platform for analyzing job descriptions, matching resume
 
 ## ✨ Features
 
-- 📋 **Job Analysis**: Extract skills from job descriptions using AI
-- 📄 **Resume Processing**: Upload and analyze PDF/TXT resumes
-- 🎯 **Smart Matching**: Calculate skill match percentage
-- 🏆 **Candidate Ranking**: Automatically rank top 10 candidates
-- 💬 **AI Chat**: Ask questions about resumes using RAG
-- 🧠 **Conversation Memory**: Persistent chat history
-- 🆓 **Zero Cost**: Uses free local AI (Ollama)
+- 📋 **Job Analysis**: Extract skills from job descriptions using AI with keyword fallback
+- 📄 **Resume Processing**: Upload and analyze PDF/TXT resumes with automatic skill extraction
+- 🎯 **Smart Matching**: Calculate skill match percentage with synonym recognition and fuzzy matching
+- 🏆 **Candidate Ranking**: Automatically rank top 10 candidates by match score
+- 💬 **AI Chat**: Ask questions about resumes using RAG with context retrieval
+- 🧠 **Conversation Memory**: Persistent chat history with session management
+- 🆓 **Zero Cost**: Uses free local AI (Ollama) - no API keys or cloud costs
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React 19.2** - UI library
-- **Vite 7.x** - Build tool & dev server
-- **Tailwind CSS 3.4** - Utility-first styling
-- **Axios** - HTTP client
-- **Lucide React** - Icons
+- **React 19.2** - UI library with hooks
+- **Vite 7.x** - Fast build tool & HMR dev server
+- **Tailwind CSS 3.4** - Utility-first styling with custom components
+- **Axios 1.13** - HTTP client for API requests
+- **Lucide React** - Modern icon library
 
 ### Backend
 - **Node.js v18+** - Runtime with ES modules
@@ -93,13 +93,13 @@ Backend will run on `http://localhost:5000`
 
 ```bash
 cd ../frontend
- (Windows)
-copy .env.example .env
-# Or (Mac/Linux)
+
 # Install dependencies
 npm install
 
-# Create .env file
+# Create .env file (Windows)
+copy .env.example .env
+# Or (Mac/Linux)
 cp .env.example .env
 
 # Start frontend
@@ -148,9 +148,10 @@ resume-intelligence-platform/
 ### 1. Create a Job
 
 1. Go to "Job Description" tab
-2. Enter job title and description
+2. Enter job title and detailed description (minimum 20 characters)
 3. Click "Analyze Job & Extract Skills"
-4. AI extracts required skills automatically
+4. AI extracts required skills automatically (with keyword fallback if needed)
+5. Review extracted skills - typically 10-20 skills identified
 
 ### 2. Upload Resume
 
@@ -175,13 +176,15 @@ resume-intelligence-platform/
 ## 📊 Example Queries
 
 **Job Analysis:**
-- "Senior React Developer with 5+ years experience..."
-- Extracts: React, JavaScript, Node.js, TypeScript, etc.
+- "Backend Engineer with Java, MongoDB, Kafka experience"
+- Extracts: Java, MongoDB, Kafka, data structures, algorithms, distributed systems
+- Synonym matching: "mongo" matches "MongoDB", "git" matches "version control"
 
 **Resume Chat:**
-- "What are the candidate's React skills?"
-- "How many years of experience?"
-- "Does the candidate have leadership experience?"
+- "What are the candidate's key technical skills?"
+- "How many years of experience does the candidate have?"
+- "Does the candidate have frontend development experience?"
+- "What programming languages does the candidate know?"
 
 ## 🔧 Configuration
 
@@ -227,26 +230,35 @@ netstat -ano | findstr :5000   # Windows
 - Check backend console for detailed error messages
 
 ### Slow AI Responses
-- First API call loads the model (10-30s is normal)
-- Subsequent calls are much faster (5-10s)
+- First API call loads the model into memory (40-75s is normal for CPU)
+- Processing time depends on your hardware (CPU vs GPU)
 - Ensure Ollama is running: `ollama list`
-- Consider using a smaller model if neededng on port 5173
+- For faster performance, use GPU or smaller model: `ollama pull llama3.2:1b`
+- Current times are acceptable for CPU-only processing
 - Check FRONTEND_URL in backend/.env
 
 ### Upload Errors
-- Check if uploads/ directory exists
-- Verify file size < 10MB
-- Ensure PDF or TXT format
+- Check if `uploads/` directory exists in backend folder
+- Verify file size < 10MB (configurable in .env)
+- Ensure file format is PDF or TXT only
+- Check backend console for detailed error messages
+
+### Job Description Too Short Error
+- Job descriptions must be at least 20 characters
+- Provide detailed job requirements for better skill extraction
+- If AI extraction fails, system automatically falls back to keyword matching
 
 ## 📈 Performance
 
-**Optimized Settings** (num_predict: 80, num_ctx: 2048):
-- **First AI Call**: 10-30 seconds (model loading + inference)
-- **Subsequent Calls**: 5-10 seconds (cached model)
-- **Skill Extraction**: 5-15 seconds per document
-- **Resume Upload**: 10-20 seconds (parsing + embedding)
-- **Chat Response**: 3-8 seconds (RAG retrieval + generation)
+**Optimized Settings** (num_predict: 150, num_ctx: 1024, temperature: 0.3):
+- **First AI Call**: 40-75 seconds (model loading + inference)
+- **Subsequent Calls**: 40-60 seconds (generation time)
+- **Skill Extraction**: 40-75 seconds per document
+- **Resume Upload**: 40-70 seconds (parsing + skill extraction + embedding)
+- **Chat Response**: 5-15 seconds (RAG retrieval + generation)
 - **Match Calculation**: <1 second (pure computation)
+
+**Note**: Performance depends heavily on CPU/GPU. Times shown are for CPU-only processing. GPU acceleration can provide 10-100x speedup.
 
 ## 🔐 Security Notes
 
