@@ -270,32 +270,38 @@ function ChatInterface({ currentResume }) {
 
       {/* Input Area */}
       <div className="border-t border-gray-200 pt-4">
-        <div className="flex items-end space-x-2">
-          <div className="flex-1">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask a question about this resume..."
-              rows={3}
-              className="textarea resize-none"
-              disabled={loading}
-              style={{ minHeight: '80px', maxHeight: '160px' }}
-            />
+        <div className="flex flex-col space-y-2">
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Ask a question about this resume..."
+            rows={3}
+            className="textarea resize-none w-full"
+            disabled={loading}
+            style={{ minHeight: '80px', maxHeight: '160px' }}
+          />
+          <div className="flex justify-end">
+            <button
+              onClick={handleSend}
+              disabled={!input.trim() || loading}
+              className="btn btn-primary px-8 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              title="Send message"
+            >
+              {loading ? (
+                <>
+                  <Loader className="w-5 h-5 animate-spin" />
+                  <span>Thinking...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  <span>Send</span>
+                </>
+              )}
+            </button>
           </div>
-          <button
-            onClick={handleSend}
-            disabled={!input.trim() || loading}
-            className="btn btn-primary px-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-            title="Send message"
-          >
-            {loading ? (
-              <Loader className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
-          </button>
         </div>
         
         <div className="flex items-center justify-between mt-2">

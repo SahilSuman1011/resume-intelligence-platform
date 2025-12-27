@@ -73,14 +73,16 @@ function ResumeUpload({ currentJob, onResumeUploaded }) {
       console.log('Uploading resume...');
       const data = await resumeAPI.upload(formData);
       console.log('Upload response:', data);
+      console.log('Match data received:', data.match);
 
       setSuccess(true);
       
       // Pass resume and match data to parent
       if (onResumeUploaded) {
+        console.log('Calling onResumeUploaded with match:', data.match);
         onResumeUploaded(
           data.resume,
-          data.matchResult || null
+          data.match || null
         );
       }
 
