@@ -10,26 +10,49 @@ const ollama = new Ollama({
 export async function extractJobSkills(jobDescription) {
   try {
     console.log('Extracting job skills...');
+    
+    // Validate input
+    if (!jobDescription || jobDescription.trim().length < 20) {
+      console.warn('Job description too short, using keyword fallback');
+      return extractSkillsKeywordBased(jobDescription || '');
+    }
+    
     const startTime = Date.now();
     
-    // Use shorter, more focused prompt
-    const prompt = `Skills in this job: ${jobDescription.substring(0, 1500)}
+    // More directive prompt that doesn't allow conversational responses
+    const prompt = `Task: Extract technical skills from job description below.
+Output format: comma-separated list only.
 
-List:`;
+Job Description:
+${jobDescription.substring(0, 2000)}
+
+Extracted Skills (comma-separated):`;
 
     const response = await ollama.generate({
       model: process.env.OLLAMA_MODEL || 'llama3.2:3b',
       prompt: prompt,
       stream: false,
       options: {
-        temperature: 0.1,
-        top_p: 0.9,
-        top_k: 20,
-        num_predict: 80,  // Even shorter
-        num_ctx: 2048,    // Smaller context window
-        stop: ['\n\n', 'Note:', 'Explanation:', 'Required:', 'Preferred:']
+        temperature: 0.3,
+        num_predict: 150,
+        num_ctx: 1024,
+        repeat_penalty: 1.1,
+        stop: ['\n\nExplanation:', '\n\nNote:', '\n\nRequired:', '\n\nQualifications:', '\n\nResponsibilities:']
       }
     });
+
+    console.log('Raw AI response:', response.response);
+    console.log('Response length:', response.response.length);
+
+    // Check if AI gave a conversational/unhelpful response
+    const responseText = response.response.toLowerCase();
+    if (responseText.includes('i don\'t see') || 
+        responseText.includes('can you provide') || 
+        responseText.includes('please provide') ||
+        responseText.includes('i\'m happy to help')) {
+      console.warn('AI gave conversational response, using keyword fallback');
+      return extractSkillsKeywordBased(jobDescription);
+    }
 
     const skills = response.response
       .split(/[,\n;]/)
@@ -44,6 +67,12 @@ List:`;
     const uniqueSkills = [...new Set(skills)];
     const duration = Date.now() - startTime;
     console.log(`✓ Extracted ${uniqueSkills.length} skills in ${duration}ms`);
+    
+    // If AI extraction failed, use keyword fallback
+    if (uniqueSkills.length === 0) {
+      console.warn('AI extracted 0 skills, using keyword fallback');
+      return extractSkillsKeywordBased(jobDescription);
+    }
     
     return uniqueSkills.slice(0, 30);  // Limit to top 30
   } catch (error) {
@@ -58,26 +87,49 @@ List:`;
 export async function extractResumeSkills(resumeText) {
   try {
     console.log('Extracting resume skills...');
+    
+    // Validate input
+    if (!resumeText || resumeText.trim().length < 50) {
+      console.warn('Resume text too short, using keyword fallback');
+      return extractSkillsKeywordBased(resumeText || '');
+    }
+    
     const startTime = Date.now();
     
-    // Use shorter, more focused prompt
-    const prompt = `Skills in resume: ${resumeText.substring(0, 1500)}
+    // More directive prompt
+    const prompt = `Task: Extract technical skills from resume below.
+Output format: comma-separated list only.
 
-List:`;
+Resume:
+${resumeText.substring(0, 2000)}
+
+Extracted Skills (comma-separated):`;
 
     const response = await ollama.generate({
       model: process.env.OLLAMA_MODEL || 'llama3.2:3b',
       prompt: prompt,
       stream: false,
       options: {
-        temperature: 0.1,
-        top_p: 0.9,
-        top_k: 20,
-        num_predict: 80,  // Even shorter
-        num_ctx: 2048,    // Smaller context window
-        stop: ['\n\n', 'Note:', 'Explanation:', 'Experience:', 'Education:']
+        temperature: 0.3,
+        num_predict: 150,
+        num_ctx: 1024,
+        repeat_penalty: 1.1,
+        stop: ['\n\nExperience:', '\n\nEducation:', '\n\nNote:', '\n\nProjects:', '\n\nCertifications:']
       }
     });
+
+    console.log('Raw AI response:', response.response);
+    console.log('Response length:', response.response.length);
+
+    // Check if AI gave a conversational/unhelpful response
+    const responseText = response.response.toLowerCase();
+    if (responseText.includes('i don\'t see') || 
+        responseText.includes('can you provide') || 
+        responseText.includes('please provide') ||
+        responseText.includes('i\'m happy to help')) {
+      console.warn('AI gave conversational response, using keyword fallback');
+      return extractSkillsKeywordBased(resumeText);
+    }
 
     const skills = response.response
       .split(/[,\n;]/)
@@ -92,6 +144,12 @@ List:`;
     const uniqueSkills = [...new Set(skills)];
     const duration = Date.now() - startTime;
     console.log(`✓ Extracted ${uniqueSkills.length} skills in ${duration}ms`);
+    
+    // If AI extraction failed, use keyword fallback
+    if (uniqueSkills.length === 0) {
+      console.warn('AI extracted 0 skills, using keyword fallback');
+      return extractSkillsKeywordBased(resumeText);
+    }
     
     return uniqueSkills.slice(0, 30);  // Limit to top 30
   } catch (error) {
