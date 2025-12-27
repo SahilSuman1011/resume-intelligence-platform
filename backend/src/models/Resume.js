@@ -124,41 +124,90 @@ class Resume {
         matchPercentage: 0,
         matchedSkills: [],
         missingSkills: [],
+        extraSkills: [],
         totalRequired: 0,
         totalMatched: 0
       };
     }
 
+    // Skill synonyms for better matching
+    const synonyms = {
+      'mongo': ['mongodb', 'mongo db'],
+      'mongodb': ['mongo', 'mongo db'],
+      'postgres': ['postgresql', 'psql'],
+      'postgresql': ['postgres', 'psql'],
+      'javascript': ['js', 'es6', 'ecmascript'],
+      'js': ['javascript', 'es6'],
+      'typescript': ['ts'],
+      'ts': ['typescript'],
+      'react': ['reactjs', 'react.js'],
+      'reactjs': ['react', 'react.js'],
+      'node': ['nodejs', 'node.js'],
+      'nodejs': ['node', 'node.js'],
+      'git': ['github', 'gitlab', 'version control'],
+      'docker': ['containerization', 'containers'],
+      'kubernetes': ['k8s'],
+      'k8s': ['kubernetes'],
+      'aws': ['amazon web services'],
+      'gcp': ['google cloud platform'],
+      'azure': ['microsoft azure']
+    };
+
+    // Normalize skills
     const normalizedJobSkills = jobSkills.map(s => s.toLowerCase().trim());
     const normalizedResumeSkills = this.skills.map(s => s.toLowerCase().trim());
 
     const matchedSkills = [];
     const matchedIndices = new Set();
 
+    // Helper function to check if two skills match
+    const skillsMatch = (jobSkill, resumeSkill) => {
+      // Exact match
+      if (resumeSkill === jobSkill) return true;
+      
+      // Direct contains match (more permissive)
+      if (resumeSkill.includes(jobSkill) || jobSkill.includes(resumeSkill)) {
+        // Make sure it's not a false positive (e.g., "java" matching "javascript")
+        if (jobSkill === 'java' && resumeSkill.includes('javascript')) return false;
+        if (resumeSkill === 'java' && jobSkill.includes('javascript')) return false;
+        return true;
+      }
+      
+      // Synonym match
+      const jobSynonyms = synonyms[jobSkill] || [];
+      const resumeSynonyms = synonyms[resumeSkill] || [];
+      
+      if (jobSynonyms.some(syn => syn === resumeSkill || resumeSkill.includes(syn))) {
+        return true;
+      }
+      
+      if (resumeSynonyms.some(syn => syn === jobSkill || jobSkill.includes(syn))) {
+        return true;
+      }
+      
+      return false;
+    };
+
+    // Find matches
     normalizedJobSkills.forEach((jobSkill) => {
-      const match = normalizedResumeSkills.find((resumeSkill, index) => {
+      const matchIndex = normalizedResumeSkills.findIndex((resumeSkill, index) => {
         if (matchedIndices.has(index)) return false;
-        
-        // Exact match
-        if (resumeSkill === jobSkill) return true;
-        
-        // Partial match
-        if (resumeSkill.includes(jobSkill) || jobSkill.includes(resumeSkill)) {
-          return true;
-        }
-        
-        return false;
+        return skillsMatch(jobSkill, resumeSkill);
       });
 
-      if (match) {
+      if (matchIndex !== -1) {
         matchedSkills.push(jobSkill);
-        const index = normalizedResumeSkills.indexOf(match);
-        matchedIndices.add(index);
+        matchedIndices.add(matchIndex);
       }
     });
 
     const missingSkills = normalizedJobSkills.filter(skill => 
       !matchedSkills.includes(skill)
+    );
+
+    // Find extra skills (resume has but job doesn't need)
+    const extraSkills = normalizedResumeSkills.filter((_, index) => 
+      !matchedIndices.has(index)
     );
 
     const matchPercentage = Math.round(
@@ -172,6 +221,9 @@ class Resume {
       ),
       missingSkills: missingSkills.map(s => 
         jobSkills.find(js => js.toLowerCase() === s) || s
+      ),
+      extraSkills: extraSkills.slice(0, 10).map(s =>
+        this.skills.find(rs => rs.toLowerCase() === s) || s
       ),
       totalRequired: jobSkills.length,
       totalMatched: matchedSkills.length

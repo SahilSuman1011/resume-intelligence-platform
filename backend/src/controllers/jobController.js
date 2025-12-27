@@ -63,6 +63,17 @@ export async function createJob(req, res) {
       jobDescription = await scrapeJobDescription(url);
     }
 
+    // Log for debugging
+    console.log('Job description length:', jobDescription?.length || 0);
+    console.log('Job description preview:', jobDescription?.substring(0, 100) || 'EMPTY');
+
+    // Validate job description
+    if (!jobDescription || jobDescription.trim().length < 20) {
+      return res.status(400).json({
+        error: 'Job description is too short. Please provide at least 20 characters.'
+      });
+    }
+
     // Extract skills
     const skills = await extractJobSkills(jobDescription);
 
