@@ -278,10 +278,10 @@ function ChatInterface({ currentResume }) {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Ask a question about this resume..."
-              rows={1}
+              rows={3}
               className="textarea resize-none"
               disabled={loading}
-              style={{ minHeight: '44px', maxHeight: '120px' }}
+              style={{ minHeight: '80px', maxHeight: '160px' }}
             />
           </div>
           <button
