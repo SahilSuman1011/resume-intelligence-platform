@@ -1,7 +1,7 @@
 # 🤖 AI-Enabled Job Resume Intelligence Platform
 
 A full-stack AI-powered platform for analyzing job descriptions, matching resumes, ranking candidates, and providing intelligent chat capabilities using RAG (Retrieval Augmented Generation).
-
+![alt text](image.png)
 ## ✨ Features
 
 - 📋 **Job Analysis**: Extract skills from job descriptions using AI with keyword fallback
